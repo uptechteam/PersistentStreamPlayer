@@ -129,6 +129,11 @@
 
 - (void)play
 {
+    if(self.player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
+        if([self.delegate respondsToSelector:@selector(persistentStreamPlayerWillStartPlaying:)])
+            [self.delegate persistentStreamPlayerWillStartPlaying:self];
+    }
+    
     [self.player play];
     [self startHealthCheckTimer];
     self.forcedPlaying = YES;
@@ -145,6 +150,11 @@
     self.fullAudioDataLength = 0;
     self.response = (NSHTTPURLResponse *)response;
     [self processPendingRequests];
+}
+-(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error{
+    if([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidFailToLoadAsset:)]) {
+        [self.delegate persistentStreamPlayerDidFailToLoadAsset:self];
+    }
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
@@ -302,8 +312,17 @@ shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loading
                         change:(NSDictionary *)change
                        context:(void *)context
 {
-    if (self.player.currentItem.status == AVPlayerItemStatusReadyToPlay && self.forcedPlaying) {
-        [self.player play];
+    if (object == self.player.currentItem && [keyPath isEqualToString:@"status"]) {
+        if (self.player.currentItem.status == AVPlayerItemStatusReadyToPlay && self.forcedPlaying) {
+            if([self.delegate respondsToSelector:@selector(persistentStreamPlayerWillStartPlaying:)])
+                [self.delegate persistentStreamPlayerWillStartPlaying:self];
+            [self.player play];
+        }
+        else if(self.player.currentItem.status == AVPlayerItemStatusFailed) {
+            if([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidFailToLoadAsset:)]){
+                [self.delegate persistentStreamPlayerDidFailToLoadAsset:self];
+            }
+        }
     }
 }
 
@@ -405,17 +424,17 @@ shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loading
 - (void)forceLoadOfDuration
 {
     [self.player.currentItem.asset loadValuesAsynchronouslyForKeys:@[@"duration"]
-                                                            completionHandler:^{
-                                                                if (self.isAssetLoaded) {
-                                                                    if ([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidLoadAsset:)]) {
-                                                                        [self.delegate persistentStreamPlayerDidLoadAsset:self];
-                                                                    }
-                                                                } else {
-                                                                    if ([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidFailToLoadAsset:)]) {
-                                                                        [self.delegate persistentStreamPlayerDidFailToLoadAsset:self];
-                                                                    }
-                                                                }
-                                                            }];
+                                                 completionHandler:^{
+                                                     if (self.isAssetLoaded) {
+                                                         if ([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidLoadAsset:)]) {
+                                                             [self.delegate persistentStreamPlayerDidLoadAsset:self];
+                                                         }
+                                                     } else {
+                                                         if ([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidFailToLoadAsset:)]) {
+                                                             [self.delegate persistentStreamPlayerDidFailToLoadAsset:self];
+                                                         }
+                                                     }
+                                                 }];
 }
 
 - (NSTimeInterval)timeBuffered

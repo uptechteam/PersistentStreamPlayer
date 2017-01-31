@@ -13,6 +13,8 @@
 - (void)persistentStreamPlayerDidLoadAsset:(PersistentStreamPlayer *)player;
 - (void)persistentStreamPlayerDidFailToLoadAsset:(PersistentStreamPlayer *)player;
 
+- (void)persistentStreamPlayerWillStartPlaying:(PersistentStreamPlayer*)player;
+
 @end
 
 @interface PersistentStreamPlayer : NSObject
