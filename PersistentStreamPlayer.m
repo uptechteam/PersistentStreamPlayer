@@ -423,15 +423,19 @@ shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loading
 
 - (void)forceLoadOfDuration
 {
+    __weak typeof(self) weakSelf = self;
     [self.player.currentItem.asset loadValuesAsynchronouslyForKeys:@[@"duration"]
                                                  completionHandler:^{
-                                                     if (self.isAssetLoaded) {
-                                                         if ([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidLoadAsset:)]) {
-                                                             [self.delegate persistentStreamPlayerDidLoadAsset:self];
-                                                         }
-                                                     } else {
-                                                         if ([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidFailToLoadAsset:)]) {
-                                                             [self.delegate persistentStreamPlayerDidFailToLoadAsset:self];
+                                                     if(weakSelf) {
+                                                         PersistentStreamPlayer* strongSelf = weakSelf;
+                                                         if (strongSelf.isAssetLoaded) {
+                                                             if ([strongSelf.delegate respondsToSelector:@selector(persistentStreamPlayerDidLoadAsset:)]) {
+                                                                 [strongSelf.delegate persistentStreamPlayerDidLoadAsset:strongSelf];
+                                                             }
+                                                         } else {
+                                                             if ([strongSelf.delegate respondsToSelector:@selector(persistentStreamPlayerDidFailToLoadAsset:)]) {
+                                                                 [strongSelf.delegate persistentStreamPlayerDidFailToLoadAsset:strongSelf];
+                                                             }
                                                          }
                                                      }
                                                  }];
