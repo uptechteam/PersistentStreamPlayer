@@ -1,6 +1,12 @@
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 
+//! Project version number.
+FOUNDATION_EXPORT double PersistentStreamPlayerVersionNumber;
+
+//! Project version string.
+FOUNDATION_EXPORT const unsigned char PersistentStreamPlayerVersionString[];
+
 @class PersistentStreamPlayer;
 @protocol PersistentStreamPlayerDelegate <NSObject>
 
